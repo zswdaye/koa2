@@ -197,6 +197,61 @@ class UserController {
 module.exports = new UserController()
 ```
 
+## 数据库操作
+
+sequelize：ORM数据库工具
+
+ORM：对象关系映射
+
+- 数据表映射（对应）一个类
+- 数据表中的数据行（记录）对应一个对象
+- 数据表字段对应对象的属性
+- 数据表的操作对应对象的方法
+
+### 安装
+
+需要安装两个包`mysql2`、`sequelize`
+
+sequelize最低支持`MySQL` 5.7版本
+
+```powershell
+npm i mysql2 sequelize
+```
+
+### 编写配置文件
+
+```js
+// .env
+MYSQL_HOST = 'localhost'
+MYSQL_PORT = 'zdsc'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = '236183'
+MYSQL_DB = 'zdsc'
+```
+
+### 连接数据库
+
+新建db文件夹，新建seq.js文件
+
+```js
+// seq.js
+const { Sequelize } = require('sequelize')
+const { MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB } = require('../config/config.default')
+
+const seq = new Sequelize(MYSQL_DB, MYSQL_USER, MYSQL_PASSWORD, {
+  host: MYSQL_HOST,
+  dialect: 'mysql'
+})
+// 测试数据的连接
+seq.authenticate().then(() => {
+  console.log('数据库连接成功');
+}).catch((err) => {
+  console.log('数据库连接失败', err);
+})
+
+module.exports = seq
+```
+
 
 
 
