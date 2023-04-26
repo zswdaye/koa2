@@ -1,0 +1,12 @@
+{
+  // 设置Prettier ESLint插件为默认格式化工具
+  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  // 保存自动格式化
+  "editor.formatOnSave": true,
+  // 设置prettier是否是最后执行，false：prettier先执行
+  "vs-code-prettier-eslint.prettierLast": false,
+  "editor.codeActionsOnSave": {
+    // 为所有文件打开自动修复
+    "source.fixAll": true
+  }
+}

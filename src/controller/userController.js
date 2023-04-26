@@ -1,6 +1,8 @@
+const { createUser } = require('../service/userService')
 class UserController {
   async register(ctx, next) {
-    ctx.body = '注册成功'
+    const params = ctx.request.body || {}
+    ctx.body = await createUser(params)
   }
   async login(ctx, next) {
     ctx.body = '登录成功'

@@ -4,7 +4,7 @@
 
 ```powershell
 npm i koa --save
-npm i nodemon --save
+npm i nodemon --D
 npm i dotenv --save
 ```
 
@@ -146,6 +146,60 @@ const { register, login } = require('../controller/userController')
 userRouter.post('/register', register)
 userRouter.post('/login', login)
 ```
+
+## 解析body
+
+### 安装`koa-body`
+
+```powershell
+npm i koa-body
+```
+
+### 使用`koa-body`
+
+```js
+// app.js
+const { koaBody } = require('koa-body')
+// 注册中间件
+app.use(koaBody())
+```
+
+### 解析请求数据
+
+新建service文件夹，新建userService文件，用来处理操作数据库相关操作
+
+```js
+// userService.js
+class UserService {
+  async createUser(params) {
+    const { user_name, password } = params || {}
+    return { user_name, password }
+  }
+}
+
+module.exports = new UserService()
+```
+
+controll文件中引入service文件
+
+```js
+// userController.js
+const { createUser } = require('../service/userService')
+class UserController {
+  async register(ctx, next) {
+    const params = ctx.request.body || {}
+    ctx.body = await createUser(params)
+  }
+  async login(ctx, next) {
+    ctx.body = '登录成功'
+  }
+}
+module.exports = new UserController()
+```
+
+
+
+
 
 
 
