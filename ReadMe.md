@@ -294,6 +294,42 @@ const User = seq.define('zd_user', {
 module.exports = User
 ```
 
+## 添加用户入库
+
+service层操作数据库
+
+```js
+// userService.js
+const User = require('../modal/userModal')
+class UserService {
+  async createUser(params) {
+    const { user_name, password } = params || {}
+    // 使用create来执行数据库的inset操作
+    const res = await User.create({ user_name, password })
+    // 返回执行结果
+    return res.dataValues
+  }
+}
+...
+```
+
+controller层返回执行结果
+
+```js
+// userController.js
+...
+const res = await createUser(params)
+ctx.body = {
+    code: '0',
+    message: '用户注册成功',
+    result: {
+        id: res.id,
+        user_name: res.user_name
+    }
+}
+...
+```
+
 
 
 
