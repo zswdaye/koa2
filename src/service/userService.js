@@ -7,6 +7,13 @@ class UserService {
     // 返回执行结果
     return res.dataValues
   }
+  async getUserInfo(params) {
+    const res = await User.findOne({
+      attributes: ['id', 'user_name', 'password', 'is_admin'],
+      where: params
+    })
+    return res ? res.dataValues : null
+  }
 }
 
 module.exports = new UserService()

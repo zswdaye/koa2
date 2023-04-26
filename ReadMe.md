@@ -330,7 +330,58 @@ ctx.body = {
 ...
 ```
 
+## 错误处理
 
+### 合法性
+
+验证用户输入的合法性
+
+```js
+// userController.js
+...
+if (!user_name || !password) {
+    ctx.status = 400
+    ctx.body = {
+        code: '10000',
+        message: '用户名或密码不能为空',
+        result: ''
+    }
+    return
+}
+...
+```
+
+### 合理性
+
+验证数据库里是否存在
+
+```js
+// userService.js
+...
+async getUserInfo(params) {
+    const res = await User.findOne({
+        attributes: ['id', 'user_name', 'password', 'is_admin'],
+        where: params
+    })
+    return res ? res.dataValues : null
+}
+...
+```
+
+```js
+// userController.js
+...
+if (await getUserInfo(params)) {
+    ctx.status = 409
+    ctx.body = {
+        code: '10001',
+        message: '用户已存在，请勿重复注册',
+        result: ''
+    }
+    return
+}
+...
+```
 
 
 
