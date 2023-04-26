@@ -88,5 +88,66 @@ userRoute.get('/user', (ctx, next) => {
 app.use(userRoute.routes())
 ```
 
+## 目录结构优化
+
+### http服务和app业务拆分
+
+新建app文件夹，将koa相关代码迁移
+
+```js
+const Koa = require('koa')
+
+const userRoute = require('./router/userRoute')
+
+const app = new Koa()
+// 注册中间件
+app.use(userRoute.routes())
+
+module.exports = app
+```
+
+改写main.js
+
+```js
+const app = require('./app')
+
+const { APP_PORT } = require('./config/config.default')
+
+app.listen(APP_PORT, () => {
+  console.log(`打开项目链接 http://localhost:${APP_PORT}`);
+})
+```
+
+### 路由和控制器拆分
+
+路由：解析URL，分发给控制器对应的方法
+
+控制器：处理不同的业务
+
+新建controller文件夹，新建处理用户相关的控制器`userController.js`
+
+```JS
+class UserController {
+  async register(ctx, next) {
+    ctx.body = '注册成功'
+  }
+  async login(ctx, next) {
+    ctx.body = '登录成功'
+  }
+}
+module.exports = new UserController()
+```
+
+用户路由文件中引入用户控制器，并将对应的方法写入对应的方法中
+
+```js
+const { register, login } = require('../controller/userController')
+
+userRouter.post('/register', register)
+userRouter.post('/login', login)
+```
+
+
+
 
 
