@@ -8,4 +8,7 @@ const app = new Koa()
 app.use(koaBody())
 app.use(userRoute.routes())
 
+const errorHandle = require('./errHandler')
+app.on('error', errorHandle)
+
 module.exports = app

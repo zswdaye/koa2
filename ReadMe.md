@@ -371,7 +371,7 @@ async getUserInfo(params) {
 ```js
 // userController.js
 ...
-if (await getUserInfo(params)) {
+if (await getUserInfo({ user_name })) {
     ctx.status = 409
     ctx.body = {
         code: '10001',
@@ -383,7 +383,196 @@ if (await getUserInfo(params)) {
 ...
 ```
 
+## 拆分中间件
 
+### 错误处理拆分成中间件
+
+新建middleWare文件夹，新增userMiddleWare.js
+
+```js
+// userMiddleWare.js
+module.exports = {
+  async verifyUserInfo(ctx, next) {
+    const { user_name, password } = ctx.request.body || {}
+    if (!user_name || !password) {
+      ctx.status = 400
+      ctx.body = {
+        code: '10000',
+        message: '用户名或密码不能为空',
+        result: ''
+      }
+      return
+    }
+    await next()
+  },
+  async userExist(ctx, next) {
+    const { user_name } = ctx.request.body || {}
+    if (await getUserInfo({ user_name })) {
+      ctx.status = 409
+      ctx.body = {
+        code: '10001',
+        message: '用户已存在，请勿重复注册',
+        result: ''
+      }
+      return
+    }
+    await next()
+  }
+}
+```
+
+改写`userRoute.js`和`userController.js`文件
+
+```js
+/* userController.js */
+// 删除合法性和合理性的判断条件，因为都封装到了中间件上去了
+/* userRoute.js */
+const { verifyUserInfo, userIsExist } = require('../middleWare/userMiddleWare')
+...
+userRouter.post('/register', verifyUserInfo, userIsExist, register)
+...
+```
+
+### 将错误处理返回值拆分
+
+新建常量文件夹constant，新建`err.type.js`文件，放置错误返回值
+
+```js
+// err.type.js
+module.exports = {
+  userErrorNameOrPwdNull: {
+    code: '10000',
+    message: '用户名或密码不能为空',
+    result: ''
+  },
+  userErrorExistHad: {
+    code: '10001',
+    message: '用户已存在，请勿重复注册',
+    result: ''
+  },
+}
+```
+
+改写`userMiddleWare.js`文件
+
+```js
+// userMiddleWare.js
+const { userErrorNameOrPwdNull, userErrorExistHad } = require('../constant/err.type')
+...
+async verifyUserInfo(ctx, next) {
+    const { user_name, password } = ctx.request.body || {}
+    if (!user_name || !password) {
+        // 使用emit方法将错误抛出
+        ctx.app.emit('error', userErrorNameOrPwdNull, ctx)
+        return
+    }
+    await next()
+},
+async userIsExist(ctx, next) {
+    const { user_name } = ctx.request.body || {}
+    if (await getUserInfo({ user_name })) {
+        ctx.app.emit('error', userErrorExistHad, ctx)
+        return
+    }
+    await next()
+}
+...
+```
+
+改写`app/index.js`文件
+
+```js
+// app/index.js
+...
+// 接受'error'抛出的参数
+app.on('error', (errInfo, ctx) => {
+  // errorINfo，ctx是emit方法抛出的参数
+  ctx.status = 500
+  ctx.body = errInfo
+})
+...
+```
+
+### 将错误类型进行拆分
+
+新建`app/errHandle.js`文件
+
+```js
+// app/errHandle.js
+module.exports = (errorInfo, ctx) => {
+  let status = 500
+  switch (errorInfo.code) {
+    case '10000': status = 400
+      break;
+    case '10001': status = 409
+      break
+    default: status = 500
+      break
+  }
+  ctx.status = status
+  ctx.body = errorInfo
+}
+```
+
+改写`index.js`文件
+
+```js
+// index.js
+...
+const errorHandle = require('./errHandler')
+app.on('error', errorHandle)
+...
+```
+
+### 对代码进行错误处理
+
+对操作数据库的代码进行`try catch`处理，增加代码的健壮性
+
+改写`userMiddleWare.js`文件
+
+```js
+// userMiddleWare.js
+...
+async userIsExist(ctx, next) {
+    const { user_name } = ctx.request.body || {}
+    try {
+        const res = await getUserInfo({ user_name })
+        if (res) {
+            ctx.app.emit('error', userErrorExistHad, ctx)
+            return
+        }
+    } catch (error) {
+        console.error('查询用户报错', error)
+        ctx.app.emit('error', userErrorExistHad, ctx)
+        return
+    }
+    await next()
+}
+...
+```
+
+改写`userController.js`文件
+
+```js
+// userController.js
+...
+try {
+    const res = await createUser(params)
+    ctx.body = {
+        code: '0',
+        message: '用户注册成功',
+        result: {
+            id: res.id,
+            user_name: res.user_name
+        }
+    }
+} catch (error) {
+    console.error('注册用户报错', error)
+    ctx.app.emit('error', userErrorRegisterErr, ctx)
+    return
+}
+...
+```
 
 
 
