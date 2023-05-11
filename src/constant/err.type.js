@@ -14,4 +14,19 @@ module.exports = {
     message: "用户注册错误",
     result: ""
   },
+  userDoesNotExist: {
+    code: '10003',
+    message: "用户不存在",
+    result: ""
+  },
+  invalidPassword: {
+    code: '10004',
+    message: "用户名或密码错误",
+    result: ""
+  },
+  userLoginErr: {
+    code: '10005',
+    message: "用户登录错误",
+    result: ""
+  },
 }

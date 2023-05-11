@@ -613,5 +613,77 @@ userRouter.post('/register', verifyUserInfo, userIsExist, cryptPassword, registe
 ...
 ```
 
+## 用户登录
+
+### 添加验证中间件
+
+1. 使用之前写过的 验证用户输入是否正确的中间件
+
+2. 新写一个验证登录的中间件
+
+定义错误类型 
+
+```js
+// constant/err.type.js
+module.exports = {
+    ...
+    userDoesNotExist: {
+        code: '10003',
+        message: "用户不存在",
+        result: ""
+    },
+    invalidPassword: {
+        code: '10004',
+        message: "用户名或密码错误",
+        result: ""
+    },
+    userLoginErr: {
+        code: '10005',
+        message: "用户登录错误",
+        result: ""
+    },
+}
+```
+
+书写中间件
+
+```js
+// middleWare/userMiddleWare.js
+const { userDoesNotExist, invalidPassword, userLoginErr } = require('../constant/err.type')
+...
+async verifyLogin(ctx, next) {
+    const { user_name, password } = ctx.request.body || {}
+    try {
+      // 1.验证用户是否存在
+      const res = await getUserInfo({ user_name })
+      if (!res) {
+        console.error('用户不存在')
+        return ctx.app.emit('error', userDoesNotExist, ctx)
+      }
+      // 2.验证密码是否正确
+      const passwordIsTrue = bcrypt.compareSync(password, res.password);
+      if (!passwordIsTrue) {
+        console.error('用户名或密码错误')
+        return ctx.app.emit('error', invalidPassword, ctx)
+      }
+    } catch (error) {
+      console.error('用户登录报错', error)
+      return ctx.app.emit('error', userLoginErr, ctx)
+    }
+    await next()
+}
+...
+```
+
+注册中间件
+
+```js
+// router/userRoute.js
+const { verifyUserInfo, verifyLogin } = require('../middleWare/userMiddleWare')
+...
+userRouter.post('/login', verifyUserInfo, verifyLogin, login)
+...
+```
+
 
 

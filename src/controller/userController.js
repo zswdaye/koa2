@@ -20,7 +20,8 @@ class UserController {
     }
   }
   async login(ctx, next) {
-    ctx.body = '登录成功'
+    const { user_name } = ctx.request.body || {}
+    ctx.body = `登录成功,${user_name}`
   }
 }
 module.exports = new UserController()
