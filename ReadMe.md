@@ -685,5 +685,55 @@ userRouter.post('/login', verifyUserInfo, verifyLogin, login)
 ...
 ```
 
+### 颁发token
 
+使用jwt来颁发token
+
+jwt：json web token
+
+- header: 头部
+- payload：json对象
+- signature：签名
+
+安装jsonwebtoken
+
+```powershell
+npm i jsonwebtoken
+```
+
+新增签名
+
+```powershell
+JWT_SECRET = 'xzd'
+```
+
+引入使用
+
+```js
+// controller/userController.js
+const jwt = require('jsonwebtoken')
+const { getUserInfo } = require('../service/userService')
+const { userLoginErr } = require('../constant/err.type')
+const { JWT_SECRET } = require('../config/config.default')
+...
+async login(ctx, next) {
+    const { user_name } = ctx.request.body || {}
+    try {
+      // 获取id,user_name,is_admin数据当作payload
+      const { password, ...resUser } = await getUserInfo({ user_name })
+      ctx.body = {
+        code: '0',
+        message: '用户登录成功',
+        result: {
+          // { expiresIn: '1d' } 设置过期时间1天
+          token: jwt.sign(resUser, JWT_SECRET, { expiresIn: '1d' })
+        }
+      }
+    } catch (error) {
+      console.error('error', error)
+      return ctx.app.emit('error', userLoginErr, ctx)
+    }
+}
+...
+```
 
