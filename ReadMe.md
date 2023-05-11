@@ -223,7 +223,7 @@ npm i mysql2 sequelize
 ```js
 // .env
 MYSQL_HOST = 'localhost'
-MYSQL_PORT = 'zdsc'
+MYSQL_PORT = '3306'
 MYSQL_USER = 'root'
 MYSQL_PASSWORD = '236183'
 MYSQL_DB = 'zdsc'
@@ -574,7 +574,44 @@ try {
 ...
 ```
 
+## 密码加密
 
+### 安装`bcryptjs`
+
+```powershell
+npm i bcryptjs
+```
+
+### 编写中间件
+
+在`middleWare/userMiddleWare.js`文件中书写新的中间件
+
+```js
+// userMiddleWare.js
+const bcrypt = require('bcryptjs')
+...
+async cryptPassword(ctx, next) {
+    const { password } = ctx.request.body || {}
+    // 加盐加密
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    ctx.request.body.password = hash
+    await next()
+}
+...
+```
+
+### 注册中间件
+
+在`router/userRoute.js`中注册中间件
+
+```js
+// userRoute.js
+const { cryptPassword } = require('../middleWare/userMiddleWare')
+...
+userRouter.post('/register', verifyUserInfo, userIsExist, cryptPassword, register)
+...
+```
 
 
 

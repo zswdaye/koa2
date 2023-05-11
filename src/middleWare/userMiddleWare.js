@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs')
+
 const { getUserInfo } = require('../service/userService')
 const { userErrorNameOrPwdNull, userErrorExistHad } = require('../constant/err.type')
 
@@ -23,6 +25,14 @@ module.exports = {
       ctx.app.emit('error', userErrorExistHad, ctx)
       return
     }
+    await next()
+  },
+  async cryptPassword(ctx, next) {
+    const { password } = ctx.request.body || {}
+    // 加盐加密
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+    ctx.request.body.password = hash
     await next()
   }
 }
