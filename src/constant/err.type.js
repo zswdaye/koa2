@@ -29,4 +29,14 @@ module.exports = {
     message: "用户登录错误",
     result: ""
   },
+  tokenExpiredError: {
+    code: '10101',
+    message: 'token已过期',
+    result: ''
+  },
+  invalidToken: {
+    code: '10101',
+    message: 'token已失效',
+    result: ''
+  },
 }

@@ -737,3 +737,85 @@ async login(ctx, next) {
 ...
 ```
 
+### 验证token
+
+定义错误类型
+
+```js
+// constant/err.type.js
+...
+tokenExpiredError: {
+    code: '10101',
+    message: 'token已过期',
+    result: ''
+  },
+  invalidToken: {
+    code: '10101',
+    message: 'token已失效',
+    result: ''
+},
+...
+```
+
+错误回调处理
+
+```js
+// app/errHandler.js
+...
+case '10101': status = 401
+  break
+...
+```
+
+书写新的中间件
+
+```js
+// middleWare/authMiddleWare.js
+const jwt = require('jsonwebtoken')
+
+const { tokenExpiredError, invalidToken } = require('../constant/err.type')
+
+const { JWT_SECRET } = require('../config/config.default')
+
+const authToken = async (ctx, next) => {
+  try {
+    const { authorization } = ctx.request.header || {}
+    const token = authorization.replace('Bearer ', '')
+    // user是payload的内容
+    const user = jwt.verify(token, JWT_SECRET);
+    console.log('user', user);
+    ctx.state.user = user
+  } catch (error) {
+    console.error('error', error)
+    switch (error.name) {
+      case 'TokenExpiredError':
+        return ctx.app.emit('error', tokenExpiredError, ctx)
+      case 'JsonWebTokenError':
+        return ctx.app.emit('error', invalidToken, ctx)
+      default:
+        return ctx.app.emit('error', invalidToken, ctx)
+    }
+  }
+  await next()
+}
+module.exports = {
+  authToken
+}
+```
+
+引入中间件
+
+```js
+// router/userRoute.js
+const { authToken } = require('../middleWare/authMiddleWare')
+...
+userRouter.patch('/', authToken, (ctx, next) => {
+  ctx.body = '修改密码'
+})
+...
+```
+
+
+
+
+
