@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 
-const { createUser, getUserInfo } = require('../service/userService')
-const { userErrorRegisterErr, userLoginErr } = require('../constant/err.type')
+const { createUser, getUserInfo, updateUserInfo } = require('../service/userService')
+const { userErrorRegisterErr, userLoginErr, changePasswordErr } = require('../constant/err.type')
 
 const { JWT_SECRET } = require('../config/config.default')
 class UserController {
@@ -37,6 +37,26 @@ class UserController {
     } catch (error) {
       console.error('error', error)
       return ctx.app.emit('error', userLoginErr, ctx)
+    }
+  }
+  async changePassword(ctx, next) {
+    // 获取数据
+    const { id } = ctx.state.user || {}
+    const { password } = ctx.request.body || {}
+    try {
+      // 更新数据库
+      if (await updateUserInfo({ id, password })) {
+        ctx.body = {
+          code: '0',
+          message: '修改密码成功',
+          result: ''
+        }
+      } else {
+        return ctx.app.emit('error', changePasswordErr, ctx)
+      }
+    } catch (error) {
+      console.error('error', error)
+      return ctx.app.emit('error', changePasswordErr, ctx)
     }
   }
 }

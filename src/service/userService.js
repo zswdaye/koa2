@@ -14,6 +14,11 @@ class UserService {
     })
     return res ? res.dataValues : null
   }
+  async updateUserInfo(params) {
+    const { id, ...newUser } = params
+    const res = await User.update(newUser, { where: { id } })
+    return res[0] > 0 ? true : false
+  }
 }
 
 module.exports = new UserService()

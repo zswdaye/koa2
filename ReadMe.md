@@ -815,6 +815,76 @@ userRouter.patch('/', authToken, (ctx, next) => {
 ...
 ```
 
+## 修改密码
+
+### 书写错误类型
+
+```js
+// constant/err.type.js
+...
+changePasswordErr: {
+    code: '10007',
+    message: '修改密码失败',
+    result: ''
+}
+...
+```
+
+### 编写service层
+
+```js
+// service/userService.js
+...
+async updateUserInfo(params) {
+    const { id, ...newUser } = params
+    const res = await User.update(newUser, { where: { id } })
+    return res[0] > 0 ? true : false
+}
+...
+```
+
+### 编写控制层
+
+```js
+// controller/useController.js
+const { updateUserInfo } = require('../service/userService')
+const { changePasswordErr } = require('../constant/err.type')
+...
+async changePassword(ctx, next) {
+    // 获取数据
+    const { id } = ctx.state.user || {}
+    const { password } = ctx.request.body || {}
+    try {
+      // 更新数据库
+      if (await updateUserInfo({ id, password })) {
+        ctx.body = {
+          code: '0',
+          message: '修改密码成功',
+          result: ''
+        }
+      } else {
+        return ctx.app.emit('error', changePasswordErr, ctx)
+      }
+    } catch (error) {
+      console.error('error', error)
+      return ctx.app.emit('error', changePasswordErr, ctx)
+    }
+}
+...
+```
+
+### 编写路由层
+
+```js
+// router/userRoute.js
+const { cryptPassword } = require('../middleWare/userMiddleWare')
+const { authToken } = require('../middleWare/authMiddleWare')
+const { changePassword } = require('../controller/userController')
+...
+userRouter.patch('/change-password', authToken, cryptPassword, changePassword)
+...
+```
+
 
 
 

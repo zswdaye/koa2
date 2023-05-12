@@ -39,4 +39,9 @@ module.exports = {
     message: 'token已失效',
     result: ''
   },
+  changePasswordErr: {
+    code: '10007',
+    message: '修改密码失败',
+    result: ''
+  },
 }

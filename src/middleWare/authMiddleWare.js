@@ -10,7 +10,6 @@ const authToken = async (ctx, next) => {
     const token = authorization.replace('Bearer ', '')
     // user是payload的内容
     const user = jwt.verify(token, JWT_SECRET);
-    console.log('user', user);
     ctx.state.user = user
   } catch (error) {
     console.error('error', error)
