@@ -885,6 +885,37 @@ userRouter.patch('/change-password', authToken, cryptPassword, changePassword)
 ...
 ```
 
+## 路由自动加载
+
+新建路由`index.js`文件
+
+```js
+// router/index.js
+const fs = require('fs')
+const Router = require('koa-router')
+
+const router = new Router()
+
+fs.readdirSync(__dirname).forEach(file => {
+  if (file !== 'index.js') {
+    let route = require('./' + file)
+    router.use(route.routes())
+  }
+})
+
+module.exports = router
+```
+
+在`app/index.js`中注册
+
+```js
+const router = require('../router')
+...
+// 第一个use是注册路由，第二个use是在没有符合路由类型(Method)的情况下抛出错误
+app.use(router.routes()).use(router.allowedMethods())
+...
+```
+
 
 
 
