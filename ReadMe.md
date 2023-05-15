@@ -920,6 +920,8 @@ app.use(router.routes()).use(router.allowedMethods())
 
 ### 验证是否登录
 
+新建商品路由文件`goodsRoute.js`
+
 ```js
 // router/goodsRoute.js
 const Router = require('koa-router')
@@ -976,6 +978,91 @@ const { authToken, hadAdminPermission } = require('../middleWare/authMiddleWare'
 router.post('/upload', authToken, hadAdminPermission, (ctx, next) => {
   ctx.body = '上传商品图片成功'
 })
+...
+```
+
+### 完成上传接口
+
+#### 安装插件
+
+`koa-static`插件可以使得本地资源能够被访问，让上传的接口可以通过`localhost:8000/d5726cd9bb96c7a888ae7bd00.png`来访问上传图片
+
+```js
+npm i koa-static
+```
+
+#### 插件配置
+
+```js
+// app/index.js
+const path = require('path')
+const KoaStatic = require('koa-static')
+...
+app.use(koaBody({
+  multipart: true, formidable: {
+    // 这里不推荐使用相对路径，因为该属性指向的路径是项目路径，而非该文件路径
+    uploadDir: path.join(__dirname, '../upload'),
+    keepExtensions: true
+  }
+}))
+// 配置本地资源的访问路径
+app.use(KoaStatic(path.join(__dirname, '../upload')))
+...
+```
+
+#### 编写错误类型
+
+```js
+// constant/err.type.js
+...
+unsupportedType: {
+    code: '10103',
+    message: '不支持该类型文件上传',
+    result: ''
+}
+...
+```
+
+#### 编写控制层
+
+新建`goodsController.js`文件
+
+```js
+// controller/goodsController.js
+const path = require('path')
+
+const { unsupportedType } = require('../constant/err.type')
+
+class GoodsController {
+  async upload(ctx, next) {
+    const { file } = ctx.request.files || {}
+    const fileType = ['image/jpeg', 'image/png']
+    console.log(file);
+    if (file && fileType.includes(file.mimetype)) {
+      ctx.body = {
+        code: '0',
+        message: '图片上传成功',
+        result: {
+          goods_img: path.basename(file.filepath)
+        }
+      }
+    } else {
+      console.error('上传类型不符合')
+      return ctx.app.emit('error', unsupportedType, ctx)
+    }
+  }
+}
+
+module.exports = new GoodsController
+```
+
+#### 编写路由层
+
+```js
+// router/goodsRoute.js
+const { upload } = require('../controller/goodsController')
+...
+router.post('/upload', authToken, hadAdminPermission, upload)
 ...
 ```
 

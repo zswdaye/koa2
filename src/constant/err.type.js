@@ -48,5 +48,10 @@ module.exports = {
     code: '10102',
     message: '没有管理员权限',
     result: ''
+  },
+  unsupportedType: {
+    code: '10103',
+    message: '不支持该类型文件上传',
+    result: ''
   }
 }
