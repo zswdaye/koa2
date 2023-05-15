@@ -916,6 +916,69 @@ app.use(router.routes()).use(router.allowedMethods())
 ...
 ```
 
+## 上传图片
+
+### 验证是否登录
+
+```js
+// router/goodsRoute.js
+const Router = require('koa-router')
+
+const { authToken } = require('../middleWare/authMiddleWare')
+
+const router = new Router({ prefix: '/goods' })
+
+router.post('/upload', authToken, (ctx, next) => {
+  ctx.body = '上传商品图片成功'
+})
+
+module.exports = router
+```
+
+### 验证是否有管理员权限
+
+书写错误类型
+
+```js
+// constant/err.type.js
+...
+notAdminPermission: {
+    code: '10102',
+    message: '没有管理员权限',
+    result: ''
+}
+...
+```
+
+编写中间件
+
+```js
+// middleWare/authMiddleWare.js
+const { notAdminPermission } = require('../constant/err.type')
+...
+const hadAdminPermission = async (ctx, next) => {
+  const { is_admin } = ctx.state.user
+  if (!is_admin) {
+    console.error('没有管理员权限', ctx.state.user)
+    return ctx.app.emit('error', notAdminPermission, ctx)
+  }
+  await next()
+}
+...
+```
+
+编写路由层
+
+```js
+// router/goodsRoute.js
+const { authToken, hadAdminPermission } = require('../middleWare/authMiddleWare')
+...
+router.post('/upload', authToken, hadAdminPermission, (ctx, next) => {
+  ctx.body = '上传商品图片成功'
+})
+...
+```
+
 
 
 

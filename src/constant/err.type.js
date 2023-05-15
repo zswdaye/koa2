@@ -44,4 +44,9 @@ module.exports = {
     message: '修改密码失败',
     result: ''
   },
+  notAdminPermission: {
+    code: '10102',
+    message: '没有管理员权限',
+    result: ''
+  }
 }

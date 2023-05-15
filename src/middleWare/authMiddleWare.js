@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const { tokenExpiredError, invalidToken } = require('../constant/err.type')
+const { tokenExpiredError, invalidToken, notAdminPermission } = require('../constant/err.type')
 
 const { JWT_SECRET } = require('../config/config.default')
 
@@ -24,6 +24,15 @@ const authToken = async (ctx, next) => {
   }
   await next()
 }
+const hadAdminPermission = async (ctx, next) => {
+  const { is_admin } = ctx.state.user
+  if (!is_admin) {
+    console.error('没有管理员权限', ctx.state.user)
+    return ctx.app.emit('error', notAdminPermission, ctx)
+  }
+  await next()
+}
 module.exports = {
-  authToken
+  authToken,
+  hadAdminPermission
 }
