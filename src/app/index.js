@@ -2,6 +2,7 @@ const path = require('path')
 const Koa = require('koa')
 const { koaBody } = require('koa-body')
 const KoaStatic = require('koa-static')
+const parameter = require('koa-parameter')
 
 const router = require('../router')
 
@@ -15,6 +16,8 @@ app.use(koaBody({
   }
 }))
 app.use(KoaStatic(path.join(__dirname, '../upload')))
+// 需要注册在路由之前
+app.use(parameter(app))
 app.use(router.routes()).use(router.allowedMethods())
 
 const errorHandle = require('./errHandler')

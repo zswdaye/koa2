@@ -1066,6 +1066,80 @@ router.post('/upload', authToken, hadAdminPermission, upload)
 ...
 ```
 
+## 统一参数格式校验
+
+### 安装插件
+
+```powershell
+npm i koa-parameter
+```
+
+### 使用
+
+在`app/index.js`中引入使用
+
+```js
+// app/index.js
+const parameter = require('koa-parameter')
+...
+// 需要注册在路由之前
+app.use(parameter(app))
+...
+```
+
+### 编写错误类型
+
+```js
+// constant/err.type.js
+...
+goodsFormatErr: {
+    code: '10201',
+    message: '参数不正确',
+    result: ''
+}
+...
+```
+
+### 编写中间件
+
+新建`goodsMiddleWare.js`文件
+
+```js
+// middleWare/goodsMiddleWare.js
+const { goodsFormatErr } = require('../constant/err.type')
+const validator = async (ctx, next) => {
+  try {
+    ctx.verifyParams({
+      goods_name: { type: 'string', required: true },
+      goods_price: { type: 'number', required: true },
+      goods_num: { type: 'number', required: true },
+      goods_img: { type: 'string', required: true }
+    })
+  } catch (error) {
+    console.error(error)
+    goodsFormatErr.result = error
+    return ctx.app.emit('error', goodsFormatErr, ctx)
+  }
+  await next()
+}
+
+module.exports = {
+  validator
+}
+```
+
+### 编写路由
+
+```js
+const { validator } = require('../middleWare/goodsMiddleWare')
+...
+// 发布商品
+router.post('/publish-product', authToken, hadAdminPermission, validator, (ctx, next) => {
+  ctx.body = '发布商品成功'
+})
+...
+```
+
 
 
 

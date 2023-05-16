@@ -53,5 +53,10 @@ module.exports = {
     code: '10103',
     message: '不支持该类型文件上传',
     result: ''
+  },
+  goodsFormatErr: {
+    code: '10201',
+    message: '参数不正确',
+    result: ''
   }
 }
