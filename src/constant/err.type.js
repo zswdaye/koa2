@@ -58,5 +58,10 @@ module.exports = {
     code: '10201',
     message: '参数不正确',
     result: ''
+  },
+  publishGoodsError: {
+    code: '10202',
+    message: '发布商品失败',
+    result: ''
   }
 }
